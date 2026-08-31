@@ -1,0 +1,29 @@
+ii  ros-humble-nav2-amcl                                     1.1.18-1jammy.20250728.174422                    arm64        amcl is a probabilistic localization system for a robot moving in 2D.
+ii  ros-humble-nav2-behavior-tree                            1.1.18-1jammy.20250728.174545                    arm64        TODO
+ii  ros-humble-nav2-behaviors                                1.1.18-1jammy.20250729.010444                    arm64        TODO
+ii  ros-humble-nav2-bringup                                  1.1.18-1jammy.20250731.071949                    arm64        Bringup scripts and configurations for the Nav2 stack
+ii  ros-humble-nav2-bt-navigator                             1.1.18-1jammy.20250729.010551                    arm64        TODO
+ii  ros-humble-nav2-collision-monitor                        1.1.18-1jammy.20250729.005456                    arm64        Collision Monitor
+ii  ros-humble-nav2-common                                   1.1.18-1jammy.20250719.142921                    arm64        Common support functionality used throughout the navigation 2 stack
+ii  ros-humble-nav2-constrained-smoother                     1.1.18-1jammy.20250729.011359                    arm64        Ceres constrained smoother
+ii  ros-humble-nav2-controller                               1.1.18-1jammy.20250730.121813                    arm64        Controller action interface
+ii  ros-humble-nav2-core                                     1.1.18-1jammy.20250729.005923                    arm64        A set of headers for plugins core to the Nav2 stack
+ii  ros-humble-nav2-costmap-2d                               1.1.18-1jammy.20250729.003124                    arm64        This package provides an implementation of a 2D costmap that takes in sensor data from the world, builds a 2D or 3D occupancy grid of the data (depending on whether a voxel based implementation is used), and inflates costs in a 2D costmap based on the occupancy grid and a user specified inflation radius.
+ii  ros-humble-nav2-dwb-controller                           1.1.18-1jammy.20250730.130954                    arm64        ROS2 controller (DWB) metapackage
+ii  ros-humble-nav2-lifecycle-manager                        1.1.18-1jammy.20250729.002358                    arm64        A controller/manager for the lifecycle nodes of the Navigation 2 system
+ii  ros-humble-nav2-map-server                               1.1.18-1jammy.20250728.174546                    arm64        Refactored map server for ROS2 Navigation
+ii  ros-humble-nav2-mppi-controller                          1.1.18-1jammy.20250729.010514                    arm64        nav2_mppi_controller
+ii  ros-humble-nav2-msgs                                     1.1.18-1jammy.20250719.143458                    arm64        Messages and service files for the Nav2 stack
+ii  ros-humble-nav2-navfn-planner                            1.1.18-1jammy.20250729.010816                    arm64        TODO
+ii  ros-humble-nav2-planner                                  1.1.18-1jammy.20250729.010853                    arm64        TODO
+ii  ros-humble-nav2-regulated-pure-pursuit-controller        1.1.18-1jammy.20250729.010530                    arm64        Regulated Pure Pursuit Controller
+ii  ros-humble-nav2-rotation-shim-controller                 1.1.18-1jammy.20250730.182628                    arm64        Rotation Shim Controller
+ii  ros-humble-nav2-rviz-plugins                             1.1.18-1jammy.20250729.022214                    arm64        Navigation 2 plugins for rviz
+ii  ros-humble-nav2-simple-commander                         1.1.18-1jammy.20250719.144441                    arm64        An importable library for writing mobile robot applications in python3
+ii  ros-humble-nav2-smac-planner                             1.1.18-1jammy.20250730.121820                    arm64        Smac global planning plugin: A*, Hybrid-A*, State Lattice
+ii  ros-humble-nav2-smoother                                 1.1.18-1jammy.20250730.122000                    arm64        Smoother action interface
+ii  ros-humble-nav2-theta-star-planner                       1.1.18-1jammy.20250730.122041                    arm64        Theta* Global Planning Plugin
+ii  ros-humble-nav2-util                                     1.1.18-1jammy.20250728.173319                    arm64        TODO
+ii  ros-humble-nav2-velocity-smoother                        1.1.18-1jammy.20250729.010012                    arm64        Nav2's Output velocity smoother
+ii  ros-humble-nav2-voxel-grid                               1.1.18-1jammy.20250719.151209                    arm64        voxel_grid provides an implementation of an efficient 3D voxel grid.
+ii  ros-humble-nav2-waypoint-follower                        1.1.18-1jammy.20250729.011307                    arm64        A waypoint follower navigation server

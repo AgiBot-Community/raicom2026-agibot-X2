@@ -1,0 +1,20 @@
+image: occupancy_map_38_floor_0512.png
+mode: trinary
+width: 901
+height: 998
+resolution: 0.050000000000000003
+origin:
+  - -19.18
+  - 30.62
+  - 0
+negate: 0
+occupied_thresh: 0.65000000000000002
+free_thresh: 0.25
+free_space:
+  - 241
+  - 229
+  - 224
+obstacle:
+  - 189
+  - 166
+  - 157

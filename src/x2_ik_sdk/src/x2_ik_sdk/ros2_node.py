@@ -1,0 +1,241 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import sys
+import time
+import argparse
+import rclpy
+from rclpy.node import Node
+
+# 导入 SDK
+try:
+    from x2_ik_sdk import ArmSide, X2ArmIKSolver, X2IKConfig
+    from x2_ik_sdk.config import ARM_POS_ORDER
+except ImportError:
+    print("❌ 找不到 x2_ik_sdk！请确保激活了独立环境。")
+    sys.exit(1)
+
+# 导入官方消息与服务
+try:
+    from aimdk_msgs.msg import UpperBodyCommandArray, MessageHeader
+    from aimdk_msgs.srv import GetAllJointState
+except ImportError:
+    print("❌ 找不到 aimdk_msgs！请确保加载了 local_setup.bash。")
+    sys.exit(1)
+
+
+class X2IKRos2Node(Node):
+    def __init__(self):
+        super().__init__('x2_ik_ros2_node')
+        
+        # 初始化 IK 求解器
+        self.solver = X2ArmIKSolver(X2IKConfig.default_omnipicker())
+        
+        # 订阅真机关节状态服务
+        self.joint_state_client = self.create_client(
+            GetAllJointState, '/aimdk_5Fmsgs/srv/GetAllJointState'
+        )
+        
+        # 注册手臂动作发布者
+        self.arm_pub = self.create_publisher(
+            UpperBodyCommandArray, '/mc/upper_body_command', 10
+        )
+
+    def get_real_joint_states(self):
+        """读取真机当前14个手臂关节角，作为IK求解的初始种子。"""
+
+        service_name = "/aimdk_5Fmsgs/srv/GetAllJointState"
+
+        # 最多等待5秒，避免服务不可用时程序永久阻塞。
+        if not self.joint_state_client.wait_for_service(timeout_sec=5.0):
+            self.get_logger().error(
+                f"GetAllJointState not available: {service_name}"
+            )
+            print("GetAllJointState not available")
+            return None
+
+        request = GetAllJointState.Request()
+        future = self.joint_state_client.call_async(request)
+
+        # 服务调用本身也设置5秒超时。
+        rclpy.spin_until_future_complete(
+            self,
+            future,
+            timeout_sec=5.0,
+        )
+
+        if not future.done():
+            self.get_logger().error(
+                "GetAllJointState call timed out after 5 seconds"
+            )
+            print("GetAllJointState failed")
+            return None
+
+        try:
+            response = future.result()
+        except Exception as exc:
+            self.get_logger().error(
+                f"GetAllJointState call failed: {exc}"
+            )
+            print("GetAllJointState failed")
+            return None
+
+        if response is None:
+            self.get_logger().error(
+                "GetAllJointState returned an empty response"
+            )
+            print("GetAllJointState failed")
+            return None
+
+        try:
+            # 接口真实结构：
+            # response.arm_joints -> JointState[]
+            arm_joints = list(response.arm_joints)
+
+            if not arm_joints:
+                raise RuntimeError("response.arm_joints为空")
+
+            joint_dict = {
+                str(joint.name): float(joint.position)
+                for joint in arm_joints
+            }
+
+            received_names = list(joint_dict.keys())
+
+            missing_names = [
+                joint_name
+                for joint_name in ARM_POS_ORDER
+                if joint_name not in joint_dict
+            ]
+
+            if missing_names:
+                raise RuntimeError(
+                    "缺少IK需要的手臂关节："
+                    f"{missing_names}；实际收到：{received_names}"
+                )
+
+            current_arm_pos = [
+                joint_dict[joint_name]
+                for joint_name in ARM_POS_ORDER
+            ]
+
+            if len(current_arm_pos) != 14:
+                raise RuntimeError(
+                    "手臂关节数量异常："
+                    f"{len(current_arm_pos)}，预期为14"
+                )
+
+            common_response = getattr(response, "reponse", None)
+            if common_response is not None:
+                header = getattr(common_response, "header", None)
+                status = getattr(common_response, "status", None)
+
+                response_code = getattr(header, "code", None)
+                response_status = getattr(status, "value", None)
+                response_message = getattr(
+                    common_response,
+                    "message",
+                    "",
+                )
+
+                self.get_logger().info(
+                    "GetAllJointState response: "
+                    f"code={response_code}, "
+                    f"status={response_status}, "
+                    f"message={response_message!r}"
+                )
+
+            self.get_logger().info(
+                "GetAllJointState success: "
+                "已读取14个真实手臂关节"
+            )
+
+            print("REAL_ARM_JOINT_STATE_COUNT=14")
+            print(
+                "REAL_ARM_JOINT_NAMES="
+                + ",".join(received_names)
+            )
+
+            return current_arm_pos
+
+        except Exception as exc:
+            self.get_logger().error(
+                f"解析真机关节数据失败: {exc}"
+            )
+            print("GetAllJointState failed")
+            return None
+
+
+def main():
+    # 1. 解析命令行参数
+    parser = argparse.ArgumentParser(description="X2 IK ROS2 Node for dry-run and execution")
+    parser.add_argument('--side', type=str, required=True, choices=['left', 'right'])
+    parser.add_argument('--target', type=float, nargs=3, required=True, metavar=('X', 'Y', 'Z'))
+    parser.add_argument('--keep-current-rpy', action='store_true')
+    parser.add_argument('--dry-run', action='store_true')
+    args = parser.parse_args()
+
+    # 2. 初始化 ROS 2
+    rclpy.init()
+    node = X2IKRos2Node()
+
+    # 3. 获取初始关节状态 (Seed)
+    seed_pos = node.get_real_joint_states()
+    if seed_pos is None:
+        # 严格匹配官方安全拦截日志
+        print("using ready arm seed")
+        seed_pos = node.solver.ready_arm_pos()
+
+    # 4. 执行 IK 解算
+    side_enum = ArmSide.RIGHT if args.side == 'right' else ArmSide.LEFT
+    result = node.solver.solve_position(
+        side=side_enum,
+        target_xyz=args.target,
+        current_arm_pos=seed_pos
+    )
+
+    # 5. 输出强制要求的验收日志
+    print(f"IK success={result.success}")
+    print(f"error={result.error_norm:.6f}")
+
+    # 6. 处理 Dry-Run 模式
+    if args.dry_run:
+        print("-> Dry-run 空跑测试完成，未下发真实动作。退出。")
+        node.destroy_node()
+        rclpy.shutdown()
+        sys.exit(0)
+        
+    # 7. 实机动作安全校验
+    if not result.success or result.error_norm >= 0.001:
+        print("❌ IK 求解失败或误差超出安全阈值 (0.001m)，紧急终止实机动作下发。")
+        node.destroy_node()
+        rclpy.shutdown()
+        sys.exit(1)
+        
+    if seed_pos == node.solver.ready_arm_pos():
+        print("❌ 未获取到真机真实关节状态，处于安全考量，禁止基于默认种子点移动真机。")
+        node.destroy_node()
+        rclpy.shutdown()
+        sys.exit(1)
+
+    # 8. 组装并下发实机控制指令 (参考 grasp_planner_node 的逻辑[cite: 7])
+    print("✅ 安全检查全部通过，正在下发真机动作...")
+    arm_msg = UpperBodyCommandArray()
+    arm_msg.header = MessageHeader()
+    arm_msg.source = "x2-ik-ros2-node"
+    arm_msg.head_pos = [0.0, 0.0]
+    arm_msg.hand_sub_mode = 1
+    arm_msg.hand_pos = [] 
+    arm_msg.arm_pos = [float(angle) for angle in result.arm_pos]
+    
+    node.arm_pub.publish(arm_msg)
+    print("🎉 动作指令已成功发布到 /mc/upper_body_command")
+    
+    # 给予节点充足的时间完成 Publish
+    time.sleep(1.0)
+    
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,9 @@
+# 激活虚拟环境后，执行：
+```
+pip install --no-index --find-links=./offline_python_deps -r requirements.txt
+```
+#编译刚刚新建的包
+```
+cd ~/star_agibot
+colcon build --packages-select grasping
+```

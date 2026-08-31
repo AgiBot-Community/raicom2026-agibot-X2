@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "x2-ik-sdk"
+version = "0.1.0"
+description = "AgiBot X2 upper-arm Pinocchio IK baseline SDK"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy",
+  "pin",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+x2_ik_sdk = ["resources/*.urdf"]
+
+# ======= 新增内容 =======
+[project.scripts]
+x2-ik-demo = "x2_ik_sdk.cli:main"
+x2-ik-ros2-node = "x2_ik_sdk.ros2_node:main"

@@ -1,0 +1,34 @@
+task1_auto:
+  ros__parameters:
+    # 机器人内部地图 ID，先用 navigation.py 示例默认值，真机连接后用 get_map 确认
+    map_id: 1773113429735
+
+    # 交互区-1目标点，后面需要根据真实地图/RViz再改
+    target_x: 1.0
+    target_y: 2.0
+    target_z: 0.0
+    target_yaw: 0.0
+
+    # 到达判定半径
+    target_radius: 0.5
+
+    # PNC导航参数
+    pnc_mode: 0
+    max_speed: 0.5
+
+    # 是否自动切换机器人运动模式
+    set_motion_mode: false
+
+    # 导航前切换到的模式
+    stand_mode: "SD"
+    locomotion_mode: "LD"
+
+    # 是否用 /map_tf_distribution/localization_pose 判断到达
+    use_pose_check: false
+    localization_topic: "/map_tf_distribution/localization_pose"
+
+    # 超时时间，单位秒
+    timeout_sec: 100.0
+
+    # 导航请求发布频率
+    publish_hz: 1.0

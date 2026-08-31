@@ -1,0 +1,43 @@
+# ROS / colcon
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Local runtime / logs / backups
+logs/
+backup/
+*.log
+*.bag
+*.db3
+
+# Local secrets
+.env
+.env.*
+!*.env.example
+config/secrets.env
+config/project_config.yaml
+config/*secret*.yaml
+config/*credentials*.yaml
+*.key
+*.pem
+*.p12
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*~

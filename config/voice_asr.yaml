@@ -1,0 +1,24 @@
+voice_asr_node:
+  ros__parameters:
+    audio_source_type: "ros_topic"
+
+    robot_audio_topic: "/aima/hal/audio/capture"
+    robot_audio_channel: 2
+    robot_audio_gain: 14.0
+
+    listen_control_topic: "/ai_agent/listen_control"
+    recognized_text_topic: "/ai_agent/recognized_text"
+
+    sample_rate: 16000
+    chunk_samples: 1600
+
+    num_threads: 2
+    max_wait_seconds: 20.0
+
+    vad_threshold: 0.2
+    vad_min_silence_duration: 0.8
+    vad_min_speech_duration: 0.25
+    vad_max_speech_duration: 10.0
+
+    language: "zh"
+    use_itn: false

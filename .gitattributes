@@ -1,0 +1,6 @@
+/agibot_yolo_wheels/opencv_python-5.0.0.93-cp37-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl filter=lfs diff=lfs merge=lfs -text
+/agibot_yolo_wheels/polars_runtime_32-1.43.2-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl filter=lfs diff=lfs merge=lfs -text
+/agibot_yolo_wheels/torch-2.0.1-cp310-cp310-manylinux2014_aarch64.whl filter=lfs diff=lfs merge=lfs -text
+/agibot_yolo_wheels/torch-2.1.0-cp310-cp310-manylinux2014_aarch64.whl filter=lfs diff=lfs merge=lfs -text
+/models/sensevoice_int8/model.int8.onnx filter=lfs diff=lfs merge=lfs -text
+/vits-zh-hf-fanchen-C/vits-zh-hf-fanchen-C.onnx filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,29 @@
+voice_asr_node:
+  ros__parameters:
+    # 版本2：外置麦 + 未处理 AudioCapture + 本地 Silero VAD
+    force_mic_source: true
+    mic_service_timeout: 5.0
+
+    listen_control_topic: /ai_agent/listen_control
+    recognized_text_topic: /ai_agent/recognized_text
+
+    sample_rate: 16000
+    num_threads: 2
+    max_wait_seconds: 20.0
+    language: zh
+    use_itn: false
+
+    raw_audio_topic: /aima/hal/audio/capture
+    raw_audio_channel: 0
+    raw_audio_gain: 1.0
+    raw_chunk_samples: 1600
+
+    # 外置麦实机验证：2总声道 = 1 mic + 1 ref
+    raw_expected_total_channels: 2
+    raw_expected_mic_channels: 1
+    raw_expected_ref_channels: 1
+
+    vad_threshold: 0.2
+    vad_min_silence_duration: 0.8
+    vad_min_speech_duration: 0.25
+    vad_max_speech_duration: 10.0

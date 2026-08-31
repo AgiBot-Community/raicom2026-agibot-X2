@@ -1,0 +1,20 @@
+image: occupancy_map.png
+mode: trinary
+width: 754
+height: 440
+resolution: 0.050000000000000003
+origin:
+  - -27.649999999999999
+  - 10
+  - 0
+negate: 0
+occupied_thresh: 0.65000000000000002
+free_thresh: 0.25
+free_space:
+  - 241
+  - 229
+  - 224
+obstacle:
+  - 189
+  - 166
+  - 157

@@ -1,0 +1,88 @@
+tf_pose_bridge:
+  ros__parameters:
+    global_frame: "map"
+    base_frame: "base_link"
+    pose_topic: "/map_tf_distribution/localization_pose"
+    publish_hz: 20.0
+    lookup_timeout_sec: 0.05
+
+
+task1_pose_nav:
+  ros__parameters:
+    # 当前比赛流程：App / 官方图负责重定位
+    # 我们只读取定位结果，不在这里做重定位
+    use_external_relocalization: true
+
+    # 位姿输入
+    pose_topic: "/map_tf_distribution/localization_pose"
+
+    # 标准速度输出，给 cmd_vel_bridge 使用
+    cmd_vel_topic: "/cmd_vel"
+
+    # 比赛全流程统一导航目标话题
+    # coordinator_node 在任务一、任务四不同阶段都往这个话题发 goal
+    goal_pose_topic: "/race_task/task1/goal_pose"
+
+    # 比赛全流程统一导航到达反馈话题
+    # task1_pose_nav 到达后发布 reached、
+    
+    nav_status_topic: "/race_task/task1/nav_status"
+
+    # 比赛必须为 true：
+    # true  = 启动后等待 coordinator_node 下发目标，不会立刻动
+    # false = 启动后直接用下面 target_x/y/yaw 自动走，只能测试用
+    wait_for_goal_from_rviz: true
+
+    # 备用固定目标，只在 wait_for_goal_from_rviz: false 时生效
+    # 比赛正式流程下不会主动使用这三个值
+    target_x: -0.26
+    target_y: 1.20
+    target_yaw: -1.76
+
+    # 到达判定
+    goal_xy_tolerance: 0.25
+    goal_yaw_tolerance: 0.35
+
+    # 到达目标点后是否调整最终朝向
+    final_yaw_enable: true
+
+    # 双足机器人速度参数，保守慢速
+    max_forward_velocity: 0.30
+    min_forward_velocity: 0.20
+    max_angular_velocity: 0.35
+    min_angular_velocity: 0.10
+
+    # 控制参数
+    k_linear: 0.45
+    k_angular: 0.90
+    heading_tolerance: 0.25
+
+    # 安全参数
+    pose_timeout_sec: 1.0
+    wait_localization_timeout_sec: 60.0
+    control_hz: 20.0
+
+
+cmd_vel_bridge:
+  ros__parameters:
+    cmd_vel_topic: "/cmd_vel"
+    output_topic: "/aima/mc/locomotion/velocity"
+
+    source: "node"
+    register_input_source: true
+    input_source_priority: 40
+    input_source_timeout: 1000
+
+    publish_hz: 50.0
+
+    max_forward_velocity: 0.30
+    max_backward_velocity: 0.20
+    max_lateral_velocity: 0.0
+    max_angular_velocity: 0.35
+
+    min_forward_velocity: 0.20
+    min_lateral_velocity: 0.20
+    min_angular_velocity: 0.10
+
+    cmd_timeout_sec: 0.5
+    deadband: 0.005

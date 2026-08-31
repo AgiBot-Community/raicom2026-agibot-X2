@@ -1,0 +1,24 @@
+voice_asr_node:
+  ros__parameters:
+    # 版本3：外置麦 + AimDK处理后音频 + AimDK上游VAD
+    force_mic_source: true
+    mic_service_timeout: 5.0
+
+    listen_control_topic: /ai_agent/listen_control
+    recognized_text_topic: /ai_agent/recognized_text
+
+    sample_rate: 16000
+    num_threads: 2
+    max_wait_seconds: 20.0
+    language: zh
+    use_itn: false
+
+    processed_audio_topic: /agent/process_audio_output
+
+    # 实机已验证 audio_vad_state：BEGIN=1, PROCESSING=2, END=3。
+    # 本模式不创建、不运行 Silero VAD。
+    processed_min_speech_duration: 0.20
+    processed_max_speech_duration: 12.0
+
+    # 实测偶发重复 BEGIN；短间隔视为同一句。
+    processed_repeated_begin_gap: 0.35

@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# 本文件必须使用source加载：
+#
+# source ~/star_agibot/scripts/activate_robot_runtime.sh
+
+STAR_AGIBOT_ROOT="$(
+    cd "$(
+        dirname "${BASH_SOURCE[0]}"
+    )/.." \
+    && pwd
+)"
+
+ARM64_SITE_PACKAGES="$STAR_AGIBOT_ROOT/runtime/aarch64_py310/site-packages"
+
+if [[ ! -d "$ARM64_SITE_PACKAGES" ]]; then
+    echo "错误：ARM64运行目录不存在："
+    echo "$ARM64_SITE_PACKAGES"
+    return 1 2>/dev/null || exit 1
+fi
+
+export STAR_AGIBOT_ROOT
+
+export PYTHONPATH="$ARM64_SITE_PACKAGES${PYTHONPATH:+:$PYTHONPATH}"
+
+# 避免比赛机器人加载用户目录中不受控的Python包。
+export PYTHONNOUSERSITE=1
+
+runtime_library_path="$ARM64_SITE_PACKAGES"
+
+while IFS= read -r library_directory; do
+    case ":$runtime_library_path:" in
+        *":$library_directory:"*)
+            ;;
+        *)
+            runtime_library_path="$runtime_library_path:$library_directory"
+            ;;
+    esac
+
+done < <(
+    find "$ARM64_SITE_PACKAGES" \
+        -type f \
+        \( \
+            -name '*.so' \
+            -o -name '*.so.*' \
+        \) \
+        -printf '%h\n' \
+        | sort -u
+)
+
+export LD_LIBRARY_PATH="$runtime_library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+export RMW_IMPLEMENTATION=rmw_fastrtps_dynamic_cpp

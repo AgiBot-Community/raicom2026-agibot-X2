@@ -1,0 +1,13 @@
+coordinator_node:
+  ros__parameters:
+    # 安全锁：在你从官方 App 地图得到交互区 I 的目标位姿前保持 false。
+    task1_goal_configured: false
+    task1_goal_x: 0.0
+    task1_goal_y: 0.0
+    task1_goal_yaw: 0.0
+
+    # 保留当前 coordinator 里已有的作业区坐标。
+    service_goal_configured: true
+    service_goal_x: -0.26
+    service_goal_y: 1.2
+    service_goal_yaw: -1.76

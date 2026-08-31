@@ -1,0 +1,14 @@
+map_publisher_node:
+  ros__parameters:
+    map_yaml: ""
+    map_topic: "/map"
+    frame_id: "map"
+    publish_period_s: 0.0
+
+localization_tf_node:
+  ros__parameters:
+    global_frame: "map"
+    base_frame: "base_link"
+    pose_topic: "/map_tf_distribution/localization_pose"
+    pose_rate_hz: 20.0
+    tf_lookup_timeout_s: 0.05
