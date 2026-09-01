@@ -1,28 +1,25 @@
-# 🤖 star_agibot — Agibot X2 竞赛机器人全流程系统
-
+# 🤖 star_agibot — Agibot X2 Competition Robot Full‑Workflow System
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![ROS 2: Humble](https://img.shields.io/badge/ROS_2-Humble-22314E.svg)](https://docs.ros.org/en/humble/)
 [![Ubuntu: 22.04](https://img.shields.io/badge/Ubuntu-22.04-E95420.svg)](https://releases.ubuntu.com/22.04/)
 [![Python: 3.10](https://img.shields.io/badge/Python-3.10-3776AB.svg)](https://www.python.org/)
 
-## 📖 项目简介
+## 📖 Project Introduction
+`star_agibot` is a complete competition‑task robot system built on **Agibot X2 / AimDK + ROS 2 Humble**. It covers:
+- Voice acquisition and offline ASR;
+- Local closed‑set intent recognition and interaction state machine;
+- Global task scheduling;
+- Dual‑navigation execution under official maps;
+- Digit / color and object visual recognition;
+- Offline TTS, facial expressions and preset motions;
+- RGB‑D 3D coordinate solving;
+- IK inverse kinematics, robotic arm and gripper grasping;
+- Timing management for microphones, navigation, vision and grasping across tasks.
 
-`star_agibot` 是基于 **Agibot X2 / AimDK + ROS 2 Humble** 搭建的竞赛机器人完整任务系统，覆盖：
-
-- 语音采集与离线 ASR；
-- 本地闭集意图识别与交互状态机；
-- 任务总调度；
-- 官方地图下的双导航执行；
-- 数字/颜色与物体视觉识别；
-- 离线 TTS、表情与预设动作；
-- RGB-D 三维坐标解算；
-- IK 逆解、机械臂与夹爪抓取；
-- 任务间麦克风、导航、视觉和抓取时序管理。
-
-项目采用**分层 + ROS 2 Topic/Service 解耦**设计。自然语言不会直接控制机器人，而是先由 `interaction_agent` 转换为白名单 JSON 意图，再交由 `x2_execution_pkg/coordinator_node` 调度具体能力节点。
+This project adopts a **layered + ROS 2 Topic/Service decoupled** design. Natural language does not directly control the robot. Instead, `interaction_agent` converts user input into whitelisted JSON intents, which are then passed to `x2_execution_pkg/coordinator_node` to schedule specific capability nodes.
 
 ```text
-用户语音
+User Voice
    │
    ▼
 voice_asr
@@ -32,7 +29,7 @@ interaction_agent
    │ /ai_agent/input_json
    ▼
 coordinator_node
-   ├────────────► voice_node ─────────► 扬声器 / 表情 / 动作
+   ├────────────► voice_node ─────────► Speaker / Facial Expressions / Motions
    ├────────────► vision_node ────────► /competition/grasp_target
    ├────────────► task1_pose_nav ─────► /cmd_vel
    └────────────► service_pose_nav ───► /cmd_vel
@@ -55,142 +52,129 @@ x2_grasp_executor_server
 x2_ik_sdk + omnipicker_hand
    │
    ▼
-机械臂 / 夹爪
+Robotic Arm / Gripper
 ```
 
-
-> **任务编号说明**  
-> 当前比赛规则中的部分“任务 2”逻辑，在历史代码中仍沿用 `task3_*` 命名。为避免赛前大范围改名破坏已联调协议，本项目保留代码命名，README 按实际比赛流程解释。
+> **Task Number Note**
+> Portions of the current competition‑rule “Task 2” logic still use `task3_*` naming in legacy code. To avoid breaking already‑integrated protocols through large‑scale pre‑competition renaming, the original code naming is preserved. The README explains behavior following the actual competition workflow.
 
 ---
 
-# 📂 一、项目结构
-
-根据当前工作空间整理，推荐提交时保持如下结构：
-
+# 📂 I. Project Structure
+Maintain the following structure for submission based on the workspace:
 ```text
 star_agibot/
-├── README.md                         # 项目总说明
-├── LICENSE                           # MIT License（项目原创代码）
-├── .gitignore                        # 敏感信息 / 构建产物排除规则
+├── README.md                         # Project overview
+├── LICENSE                           # MIT License (original project code)
+├── .gitignore                        # Sensitive information / build‑artifact exclusion rules
 │
-├── models/                           # 推荐统一存放视觉模型
-├── vits-zh-hf-fanchen-C/             # 本地 TTS 模型/资源（如实际使用）
+├── models/                           # Unified storage for vision models (recommended)
+├── vits‑zh‑hf‑fanchen‑C/             # Local TTS model / assets (if used)
 │
-├── agibot_arm64_wheels/              # ARM64 基础离线 Python wheels
-├── agibot_yolo_wheels/               # ARM64 YOLO / ONNX 离线 wheels
-├── runtime/                           # 运行时资源
-├── scripts/                           # 环境激活、辅助运行脚本
-├── final_scripts/                     # 比赛现场最终辅助脚本
-├── maps/                              # 地图/现场辅助文件（如需要）
-├── audio_channel_test/                # 麦克风通道测试工具
+├── agibot_arm64_wheels/              # ARM64 offline Python wheels for core dependencies
+├── agibot_yolo_wheels/               # ARM64 YOLO / ONNX offline wheels
+├── runtime/                           # Runtime assets
+├── scripts/                           # Environment activation and auxiliary runtime scripts
+├── final_scripts/                     # Final auxiliary scripts for competition field
+├── maps/                              # Map / on‑site auxiliary files (as needed)
+├── audio_channel_test/                # Microphone channel test utilities
 │
-├── check_external_mic.py              # 外置麦克风检查
-├── send_listen_true.py                # 首轮开麦辅助脚本
-├── send_pose.py                       # 位姿调试工具
-├── test_gray_distribution.py          # 视觉灰度调试工具
+├── check_external_mic.py              # External‑microphone validation
+├── send_listen_true.py                # First‑round microphone enable helper script
+├── send_pose.py                       # Pose debugging utility
+├── test_gray_distribution.py          # Vision grayscale debugging tool
 │
 └── src/
-    ├── voice_asr/                     # 🎙️ 音频采集、VAD、离线 ASR
-    ├── interaction_agent/             # 🧠 闭集意图 + 状态机
+    ├── voice_asr/                     # 🎙️ Audio capture, VAD, offline ASR
+    ├── interaction_agent/             # 🧠 Closed‑set intent + state machine
     ├── x2_execution_pkg/              # 🎛️ Coordinator / Vision / Voice
-    ├── race_task/                     # 🧭 定位桥、双导航、速度桥
-    ├── grasping/                      # 🦾 抓取守护、服务端、触发器
-    ├── x2_ik_sdk/                     # 🧮 IK SDK / 离线依赖
-    ├── map_tf_distribution/           # 🗺️ 地图/TF 支撑包
-    ├── py_examples/                   # 🧪 AimDK 示例与复位工具
-    └── ruckig/                        # 第三方轨迹相关依赖
+    ├── race_task/                     # 🧭 Localization bridge, dual navigation, velocity bridge
+    ├── grasping/                      # 🦾 Grasping watchdog, executor server, trigger
+    ├── x2_ik_sdk/                     # 🧮 IK SDK / offline dependencies
+    ├── map_tf_distribution/           # 🗺️ Map / TF support package
+    ├── py_examples/                   # 🧪 AimDK examples and reset utilities
+    └── ruckig/                        # Third‑party trajectory‑planning dependency
 ```
 
-## 1.1 核心包职责
-
-| 包 | 主要职责 |
-| --- | --- |
-| `voice_asr` | 内/外置麦克风音频接入、VAD、SenseVoice/离线 ASR，发布识别文本 |
-| `interaction_agent` | 状态约束下的闭集语义识别，将文本变为统一 JSON 意图 |
-| `x2_execution_pkg` | 总调度、视觉、离线语音播报、表情/动作以及任务时序 |
-| `race_task` | 官方地图定位桥、任务 1 导航、服务导航、底盘速度桥 |
-| `grasping` | 夹爪守护、抓取 Executor、目标抓取触发 |
-| `x2_ik_sdk` | IK 逆运动学 SDK 与离线依赖 |
-| `map_tf_distribution` | 定位/TF/地图辅助能力 |
-| `py_examples` | 机器人模式、姿态复位和官方接口测试 |
-| `ruckig` | 第三方轨迹规划依赖（按上游许可证使用） |
+## 1.1 Core Package Responsibilities
+| Package | Main Responsibilities |
+|---|---|
+| `voice_asr` | Internal / external microphone access, VAD, SenseVoice / offline ASR; publish recognized text |
+| `interaction_agent` | State‑constrained closed‑set semantic recognition; convert raw text into standardized JSON intents |
+| `x2_execution_pkg` | Global coordination, vision, offline voice playback, facial expressions / motions, task timing |
+| `race_task` | Official‑map localization bridge, Task 1 navigation, service navigation, chassis velocity bridge |
+| `grasping` | Gripper watchdog, grasp executor, automatic grasp trigger |
+| `x2_ik_sdk` | Inverse‑kinematics SDK and offline dependencies |
+| `map_tf_distribution` | Localization / TF / map auxiliary utilities |
+| `py_examples` | Robot mode management, posture reset, official‑interface testing |
+| `ruckig` | Third‑party trajectory‑planning dependency (use per upstream license) |
 
 ---
 
-# 🧩 二、核心模块说明
-
+# 🧩 II. Core Module Description
 ## 2.1 `voice_asr`
-
 ```text
 voice_asr/
-├── config/                              # ASR 三种运行模式配置
-│   ├── voice_asr_raw_internal.yaml      # 内置麦 + Raw 音频 + Silero VAD
-│   ├── voice_asr_raw_external.yaml      # 外置麦 + Raw 音频 + Silero VAD
-│   └── voice_asr_processed_external.yaml # 外置麦 + Processed 音频 + AimDK VAD
-├── resource/                            # ROS 2 ament 包索引资源
-├── test/                                # ROS 2 / Python 标准测试
-├── voice_asr/                           # 核心语音识别代码
-│   ├── __init__.py                      # Python 包初始化
-│   ├── voice_asr_node.py                # ASR 主节点与监听控制
-│   ├── asr_engine.py                    # 本地离线 ASR 推理
-│   ├── vad_engine.py                    # Silero VAD 语音活动检测
-│   ├── listening_session.py             # Raw 音频监听与分段管理
-│   ├── robot_audio_source.py            # AimDK Raw 音频接入
-│   ├── external_mic.py                  # 外置麦克风切换与确认
-│   ├── processed_audio_source.py        # AimDK Processed 音频接入
-│   └── processed_listening_session.py   # Processed 音频监听会话管理
-├── LICENSE                              # 包级开源协议
-├── README.md                            # voice_asr 包说明
-├── package.xml                          # ROS 2 包描述与依赖
-├── setup.cfg                            # Python ROS 2 安装配置
-└── setup.py                             # Python 包及可执行入口配置
+├── config/                              # Three ASR runtime‑mode configurations
+│   ├── voice_asr_raw_internal.yaml      # Internal mic + Raw audio + Silero VAD
+│   ├── voice_asr_raw_external.yaml      # External mic + Raw audio + Silero VAD
+│   └── voice_asr_processed_external.yaml # External mic + Processed audio + AimDK VAD
+├── resource/                            # ROS 2 ament package resource index
+├── test/                                # ROS 2 / Python standard tests
+├── voice_asr/                           # Core speech‑recognition source code
+│   ├── __init__.py                      # Python package initialization
+│   ├── voice_asr_node.py                # ASR main node and listen‑control logic
+│   ├── asr_engine.py                    # Local offline ASR inference
+│   ├── vad_engine.py                    # Silero VAD voice‑activity detection
+│   ├── listening_session.py             # Raw‑audio listening and segmentation management
+│   ├── robot_audio_source.py            # AimDK Raw‑audio access
+│   ├── external_mic.py                  # External‑microphone switching and validation
+│   ├── processed_audio_source.py        # AimDK Processed‑audio access
+│   └── processed_listening_session.py   # Processed‑audio listening‑session management
+├── LICENSE                              # Package‑level open‑source license
+├── README.md                            # voice_asr package documentation
+├── package.xml                          # ROS 2 package manifest and dependencies
+├── setup.cfg                            # Python ROS 2 installation configuration
+└── setup.py                             # Python package and executable entry‑point definition
 ```
 
-
-
-比赛时三个入口**三选一，禁止同时运行多个 ASR 实例**：
-
+Select **one single entry point for competition; do NOT run multiple ASR instances simultaneously**:
 ```text
 voice_asr_raw_internal
-    └── 内置麦 + 原始音频 + 本地 Silero VAD
-
+    └── Internal microphone + Raw audio + local Silero VAD
 voice_asr_raw_external
-    └── 外置麦 + 原始音频 + 本地 Silero VAD
-
+    └── External microphone + Raw audio + local Silero VAD
 voice_asr_processed_external
-    └── 外置麦 + AimDK 处理后音频 + AimDK VAD
+    └── External microphone + AimDK‑processed audio + AimDK VAD
 ```
 
-统一输出：
-
+Unified output topic:
 ```text
 /ai_agent/recognized_text
 std_msgs/msg/String
 ```
-**目前前两个入口已在真实机器人上测试成功，最后一个入口未测试成功，仍需微调。**
+
+> The first two entry points have been validated on physical hardware. The final entry point remains untested and requires further tuning.
 
 ## 2.2 `interaction_agent`
-
 ```text
 interaction_agent/
-├── interaction_agent/               # 🧠 交互核心逻辑
+├── interaction_agent/               # 🧠 Core interaction logic
 │   ├── __init__.py
-│   ├── models.py                    # 状态、意图枚举与标准 IntentResult
-│   ├── rules.py                     # 闭集关键词、槽位、表情/动作/需求规则
-│   ├── intent_dispatcher.py         # 按当前状态进行意图白名单分流
-│   ├── state_machine.py             # 比赛交互有限状态机
-│   └── interaction_node.py          # ROS 2 节点：文本输入 / JSON 输出 / 状态同步
+│   ├── models.py                    # State / intent enumerations and standard IntentResult
+│   ├── rules.py                     # Closed‑set keywords, slots, expression / motion / requirement rules
+│   ├── intent_dispatcher.py         # Whitelisted intent dispatch governed by current state
+│   ├── state_machine.py             # Finite state machine for competition interactions
+│   └── interaction_node.py          # ROS 2 node: text input / JSON output / state synchronization
 ├── resource/
 │   └── interaction_agent
-├── test/                            # ROS 2 / Python 标准测试目录
+├── test/                            # ROS 2 / Python standard test directory
 ├── package.xml
 ├── setup.cfg
 └── setup.py
 ```
 
-核心数据流：
-
+Core data flow:
 ```text
 /ai_agent/recognized_text
         ↓
@@ -201,8 +185,7 @@ rules + intent_dispatcher + state_machine
 /ai_agent/input_json
 ```
 
-统一 JSON 示例：
-
+Sample standardized JSON intent:
 ```json
 {
   "intent_type": "task1_go_interaction_area",
@@ -214,21 +197,19 @@ rules + intent_dispatcher + state_machine
 }
 ```
 
-主要意图：
+Major intent types:
+| Phase | `intent_type` |
+|---|---|
+| Task 1 | `task1_go_interaction_area` |
+| Basic Interaction | `task3_time_query` |
+| Basic Interaction | `task3_digit_color_query` |
+| Basic Interaction | `task3_emoji_control` |
+| Basic Interaction | `task3_action_control` |
+| Autonomous Service | `task4_wake_service` |
+| Autonomous Service | `task4_need_classification` |
+| Fallback | `unknown` |
 
-| 阶段 | `intent_type` |
-| --- | --- |
-| 任务 1 | `task1_go_interaction_area` |
-| 基础交互 | `task3_time_query` |
-| 基础交互 | `task3_digit_color_query` |
-| 基础交互 | `task3_emoji_control` |
-| 基础交互 | `task3_action_control` |
-| 自主服务 | `task4_wake_service` |
-| 自主服务 | `task4_need_classification` |
-| 兜底 | `unknown` |
-
-状态机核心：
-
+State‑machine core transitions:
 ```text
 TASK1_WAIT_COMMAND
         │
@@ -238,9 +219,9 @@ TASK1_NAVIGATING
         ▼
 INTERACTION_LISTEN
         │
-        ├── 时间 / 数字颜色 / 表情 / 动作
+        ├── Time / Digit‑Color / Emoji / Motion
         │
-        └── 唤醒自主服务
+        └── Wake‑up autonomous service
                  ▼
           TASK4_ASK_STATUS
                  ▼
@@ -252,36 +233,33 @@ INTERACTION_LISTEN
 ```
 
 ## 2.3 `x2_execution_pkg`
-
 ```text
 x2_execution_pkg/
-├── config/                   # 🌟 核心配置文件目录
-│   ├── coordinator_nav.yaml  # 导航与总指挥参数配置
-│   └── vision_config.yaml    # 视觉模型路径脱敏配置
-├── models/                   # 🧠 本地离线模型存放区
-│   ├── best.onnx             # 夹取识别特训模型 (Plan A)
-│   ├── yoloe_task4.onnx      # 夹取识别开放提示词大模型 (Plan B)
-│   ├── yolo.onnx             # 数字识别 ONNX 模型
-│   └── yolo_digits.pt        # 数字识别 PT 原模型
+├── config/                   # 🌟 Core configuration directory
+│   ├── coordinator_nav.yaml  # Navigation and master‑scheduler parameters
+│   └── vision_config.yaml    # Desensitized vision‑model path configuration
+├── models/                   # 🧠 Local offline model storage
+│   ├── best.onnx             # Fine‑tuned grasping‑recognition model (Plan A)
+│   ├── yoloe_task4.onnx      # Open‑prompt grasping‑recognition large model (Plan B)
+│   ├── yolo.onnx             # Digit‑recognition ONNX model
+│   └── yolo_digits.pt        # Original digit‑recognition PT model
 ├── resource/
-├── test/                     # ROS 2 标准测试目录
-├── x2_execution_pkg/         # 🚀 核心代码逻辑
+├── test/                     # ROS 2 standard test directory
+├── x2_execution_pkg/         # 🚀 Core implementation logic
 │   ├── __init__.py
-│   ├── coordinator_node.py   # 总指挥大脑节点
-│   ├── vision_node.py        # 视觉感知节点
-│   └── voice_node.py         # 语音交互节点
+│   ├── coordinator_node.py   # Master‑brain coordinator node
+│   ├── vision_node.py        # Vision‑perception node
+│   └── voice_node.py         # Voice‑interaction node
 ├── package.xml
 ├── setup.cfg
 └── setup.py
-
 ```
 
-- `coordinator_node`：订阅意图 JSON，控制麦克风，选择任务 1/服务导航，调度视觉、播报、动作与抓取。
-- `vision_node`：数字/颜色识别、目标物体识别、RGB-D 三维解算、TF 转换。
-- `voice_node`：本地 TTS、音频下发、播报结束后的麦克风策略。
+- `coordinator_node`: Subscribes to intent JSON, manages microphone state, selects Task‑1 / service navigation, schedules vision, audio playback and grasping actions.
+- `vision_node`: Digit / color recognition, target‑object detection, RGB‑D 3D coordinate solving, TF transformations.
+- `voice_node`: Local TTS, audio output, microphone policy after playback completes.
 
-内部接口：
-
+Internal interfaces:
 ```text
 /system/voice_cmd
 /system/vision_cmd
@@ -289,21 +267,20 @@ x2_execution_pkg/
 ```
 
 ## 2.4 `race_task`
-
 ```text
 race_task/
-├── config/                           # 🌟 真机导航参数
+├── config/                           # 🌟 Physical‑robot navigation parameters
 │   ├── competition_official_voice_nav.yaml
 │   └── service_official_map_nav.yaml
 ├── launch/
-│   ├── task1_app_ready.launch.py    # 任务1：TF + 速度桥 + task1 导航
-│   └── dual_navigation.launch.py    # 可选：完整比赛同时拉起两套导航
-├── race_task/                        # 🚀 导航与底盘核心代码
+│   ├── task1_app_ready.launch.py    # Task 1: TF + velocity bridge + task1 navigation
+│   └── dual_navigation.launch.py    # Optional: launch both navigation stacks simultaneously for full competition
+├── race_task/                        # 🚀 Navigation and chassis core logic
 │   ├── __init__.py
-│   ├── tf_pose_bridge.py            # map->base_link TF 转PoseStamped
-│   ├── task1_pose_nav.py            # 出发区 → 交互区 I
-│   ├── service_pose_nav.py          # 交互区 → 作业区/服务区域
-│   └── cmd_vel_bridge.py            # /cmd_vel → AimDK 底盘速度接口
+│   ├── tf_pose_bridge.py            # Convert map‑to‑base_link TF into PoseStamped
+│   ├── task1_pose_nav.py            # Start area → Interaction Area I
+│   ├── service_pose_nav.py          # Interaction area → Work / service zones
+│   └── cmd_vel_bridge.py            # Forward /cmd_vel to AimDK chassis‑velocity interface
 ├── resource/
 │   └── race_task
 ├── test/
@@ -312,8 +289,7 @@ race_task/
 └── setup.py
 ```
 
-正式链路：
-
+Official execution pipeline:
 ```text
 map -> base_link TF
         ↓
@@ -330,56 +306,47 @@ cmd_vel_bridge
 /aima/mc/locomotion/velocity
 ```
 
-任务 1 与服务导航**必须使用不同 Goal/Status Topic**：
-
+Task 1 and service navigation **must use distinct Goal / Status topics**:
 ```text
 Task1:
   /race_task/task1/goal_pose
   /race_task/task1/nav_status
-
 Service:
   /race_task/service/goal_pose
   /race_task/service/nav_status
 ```
 
-两个导航节点可同时启动，但只有收到各自目标后才允许进入控制状态；任何时刻都应避免两个导航器同时发布有效运动控制。
+Both navigation nodes may start concurrently, but only enter active control upon receiving their respective goals. Ensure the two navigators never publish valid motion commands at the same time.
 
 ## 2.5 `grasping` + `x2_ik_sdk`
-模块层级结构
-
+Module hierarchy:
 ```text
 star_agibot/
 ├── src/
-│   ├── grasping/                  # 核心抓取功能包 (包含夹爪控制、服务端、触发器)
-│   ├── x2_ik_sdk/                 # 逆运动学 (IK) 离线依赖与 SDK
-│   │   ├── offline_deps/          # 离线安装包 (numpy, pin等)
-│   │   └── src/                   # SDK 源码
-│   └── py_examples/               # 测试脚本与复位用例 (set_mc_action)
+│   ├── grasping/                  # Core grasping package (gripper control, server, trigger)
+│   ├── x2_ik_sdk/                 # Inverse‑kinematics (IK) offline dependencies and SDK
+│   │   ├── offline_deps/          # Offline installation wheels (numpy, pin, etc.)
+│   │   └── src/                   # SDK source code
+│   └── py_examples/               # Test scripts and reset examples (set_mc_action)
 ```
 
-
-核心组件：
-
+Core components:
 ```text
 omnipicker_hand
-        └── 夹爪底层守护/状态
-
+        └── Gripper low‑level watchdog / state management
 x2_grasp_executor_server
-        └── 接收抓取请求、IK 解算、机械臂轨迹执行
-
+        └── Accept grasp requests, perform IK solving, execute robotic‑arm trajectories
 x2_grasp_auto_trigger
-        └── 监听 /competition/grasp_target 并触发 Executor
+        └── Listen to /competition/grasp_target and invoke executor
 ```
 
-抓取目标输入：
-
+Grasp‑target input topic:
 ```text
 /competition/grasp_target
 std_msgs/msg/String
 ```
 
-示例：
-
+Sample payload:
 ```json
 {
   "object_name": "cup",
@@ -387,148 +354,120 @@ std_msgs/msg/String
 }
 ```
 
-`target_point` 应为执行链约定的三维坐标；当前视觉执行链按 `base_link` 坐标系对接。
+`target_point` is a 3‑D coordinate following execution‑chain conventions. In the current vision pipeline coordinates are defined in the `base_link` frame.
 
 ---
 
-# 🛠️ 三、环境要求
-
-## 3.1 系统
-
+# 🛠️ III. Environment Requirements
+## 3.1 System
 - Ubuntu 22.04 LTS
 - ROS 2 Humble
 - Python 3.10
 - Agibot X2 / AimDK
-- `~/aimdk` 已正确安装并可 `source ~/aimdk/install/setup.bash`
-- 真机推荐 NVIDIA Jetson Orin NX / ARM64
-- RGB-D 相机、麦克风、扬声器
-- 官方 App 地图及重定位能力
+- `~/aimdk` correctly installed; `source ~/aimdk/install/setup.bash` works
+- Physical hardware: NVIDIA Jetson Orin NX / ARM64 recommended
+- RGB‑D camera, microphone, loudspeaker
+- Official App map and relocalization capability
 
-所有普通 ROS 终端统一按以下顺序加载环境：
-
+All regular ROS terminals source environment variables in this fixed order:
 ```bash
 cd ~/star_agibot
-
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
 ```
 
-如果仓库中的 `scripts/activate_robot_runtime.sh` 用于加载 ASR 离线运行库，可在上述三行之后追加：
-
+If `scripts/activate_robot_runtime.sh` inside the repository loads offline ASR runtime libraries, append it after the three lines above:
 ```bash
 source ~/star_agibot/scripts/activate_robot_runtime.sh
 ```
 
-> 不要在不同机器人镜像之间盲目硬编码 `RMW_IMPLEMENTATION`。比赛机优先使用其系统默认 RMW；只有确认 ABI 兼容性后再显式指定。
+> Do not hard‑code `RMW_IMPLEMENTATION` blindly across different robot images. Use the system default RMW on competition machines; explicitly set it only after confirming ABI compatibility.
 
-## 3.2 视觉 / TTS Python 依赖
-
-项目已验证/约定的关键版本：
-
+## 3.2 Vision / TTS Python Dependencies
+Key validated and pinned versions:
 ```text
 numpy==1.24.3
-opencv-python-headless==4.8.1.78
+opencv‑python‑headless==4.8.1.78
 torch==2.1.0
 torchvision==0.16.0
-sherpa-onnx==1.13.4
+sherpa‑onnx==1.13.4
 ```
 
-在线开发环境：
-
+Online development environment installation:
 ```bash
-pip install numpy==1.24.3 opencv-python-headless==4.8.1.78
+pip install numpy==1.24.3 opencv‑python‑headless==4.8.1.78
 pip install torch==2.1.0 torchvision==0.16.0
-pip install sherpa-onnx==1.13.4 ultralytics onnx onnxruntime
+pip install sherpa‑onnx==1.13.4 ultralytics onnx onnxruntime
 pip install soundfile PyYAML Shapely pyclipper Pillow six
 ```
 
-## 3.3 ARM64 离线安装
-
-仓库根目录已保留：
-
+## 3.3 ARM64 Offline Installation
+Prebuilt wheels are stored in repository root:
 ```text
 agibot_arm64_wheels/
 agibot_yolo_wheels/
 ```
 
-机器人断网时：
-
+For offline robot operation:
 ```bash
 cd ~/star_agibot/agibot_arm64_wheels
-
 pip install --no-index --find-links=. --no-deps \
   numpy==1.24.3 \
-  opencv-python-headless==4.8.1.78
-
+  opencv‑python‑headless==4.8.1.78
 pip install --no-index --find-links=. \
   numpy==1.24.3 \
-  opencv-python-headless==4.8.1.78 \
-  sherpa-onnx==1.13.4 \
+  opencv‑python‑headless==4.8.1.78 \
+  sherpa‑onnx==1.13.4 \
   soundfile PyYAML Shapely onnxruntime pyclipper Pillow six
 ```
 
-YOLO / ONNX：
-
+YOLO / ONNX offline setup:
 ```bash
 cd ~/star_agibot/agibot_yolo_wheels
-
 pip install --no-index --find-links=. \
   torch==2.1.0 \
   torchvision==0.16.0 \
   onnx onnxruntime \
   numpy==1.24.3 \
-  opencv-python-headless==4.8.1.78
-
-# 文件名以目录中的实际版本为准
-pip install --no-index --no-deps ./ultralytics-*.whl
+  opencv‑python‑headless==4.8.1.78
+# Use actual filenames present in directory
+pip install --no-index --no-deps ./ultralytics‑*.whl
 ```
 
 ---
 
-#  四、IK 抓取独立运行环境
-
-机械臂 IK 使用独立 Python venv，避免与系统 ROS / 视觉依赖互相污染。
-
+# IV. Independent IK‑Grasping Runtime Environment
+Robotic‑arm IK runs inside a dedicated Python venv to avoid dependency conflicts with ROS and vision stacks.
 ```bash
 deactivate 2>/dev/null || true
 unset PYTHONPATH
 export PYTHONNOUSERSITE=1
-
-rm -rf ~/.venvs/x2-ik-runtime
-python3 -m venv ~/.venvs/x2-ik-runtime
-source ~/.venvs/x2-ik-runtime/bin/activate
-
+rm -rf ~/.venvs/x2‑ik‑runtime
+python3 -m venv ~/.venvs/x2‑ik‑runtime
+source ~/.venvs/x2‑ik‑runtime/bin/activate
 cd ~/star_agibot/src/x2_ik_sdk
-
 python3 -m pip install --no-index --find-links=offline_deps \
   numpy pin setuptools wheel
-
 python3 -m pip install --no-index --find-links=offline_deps \
   x2_ik_sdk
 ```
 
-> 只有抓取相关终端需要激活 `x2-ik-runtime`。ASR、导航、Coordinator、Vision、Voice 等普通 ROS 终端不要误激活该 venv。
+> Only terminals running grasping logic should activate `x2‑ik‑runtime`. Do NOT activate this venv for ASR, navigation, Coordinator, Vision, Voice or other standard ROS nodes.
 
 ---
 
-# 五、编译
-
-## 5.1 编译普通 ROS 包
-
-新终端执行：
-
+# V. Build & Compilation
+## 5.1 Build Standard ROS Packages
+Open a fresh terminal:
 ```bash
 cd ~/star_agibot
-
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
-
 unset RMW_IMPLEMENTATION
-
 colcon build \
-  --symlink-install \
-  --packages-select \
+  --symlink‑install \
+  --packages‑select \
   voice_asr \
   interaction_agent \
   race_task \
@@ -536,14 +475,12 @@ colcon build \
   py_examples
 ```
 
-完成后：
-
+After build completes:
 ```bash
 source ~/star_agibot/install/setup.bash
 ```
 
-检查：
-
+Validation check:
 ```bash
 ros2 pkg prefix voice_asr
 ros2 pkg prefix interaction_agent
@@ -551,30 +488,25 @@ ros2 pkg prefix race_task
 ros2 pkg prefix x2_execution_pkg
 ```
 
-## 5.2 编译抓取包
-
+## 5.2 Build Grasping Package
 ```bash
 deactivate 2>/dev/null || true
-source ~/.venvs/x2-ik-runtime/bin/activate
+source ~/.venvs/x2‑ik‑runtime/bin/activate
 export PYTHONNOUSERSITE=1
-
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
-
 colcon build \
-  --symlink-install \
-  --packages-select grasping
+  --symlink‑install \
+  --packages‑select grasping
 ```
 
-完成后：
-
+After build completes:
 ```bash
 source ~/star_agibot/install/setup.bash
 ```
 
-## 5.3 可执行入口检查
-
+## 5.3 Verify Executable Entry Points
 ```bash
 ros2 pkg executables voice_asr
 ros2 pkg executables interaction_agent
@@ -583,20 +515,16 @@ ros2 pkg executables x2_execution_pkg
 ros2 pkg executables grasping
 ```
 
-至少应确认以下核心入口存在：
-
+Confirm these core executables exist:
 ```text
 interaction_agent interaction_node
-
 race_task tf_pose_bridge
 race_task task1_pose_nav
 race_task service_pose_nav
 race_task cmd_vel_bridge
-
 x2_execution_pkg coordinator_node
 x2_execution_pkg vision_node
 x2_execution_pkg voice_node
-
 grasping omnipicker_hand
 grasping x2_grasp_executor_server
 grasping x2_grasp_auto_trigger
@@ -604,185 +532,153 @@ grasping x2_grasp_auto_trigger
 
 ---
 
-# 六、真机启动前检查
-
-## 6.1 AimDK
-
+# VI. Pre‑Launch Physical‑Robot Checks
+## 6.1 AimDK Environment
 ```bash
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
-
 ros2 pkg prefix aimdk_msgs
 ```
 
-应指向当前机器人正确的 AimDK 安装环境。
+Output must point to valid AimDK installation on robot hardware.
 
-## 6.2 官方地图与定位
-
-先确认地图：
-
+## 6.2 Official Map and Localization
+Validate map availability:
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 ros2 topic info /map -v
 ```
 
-确认 TF：
-
+Validate TF tree:
 ```bash
 ros2 run tf2_ros tf2_echo map base_link
 ```
 
-确认导航使用的统一定位：
-
+Validate navigation‑consumed localization topic:
 ```bash
 ros2 topic echo \
   /map_tf_distribution/localization_pose \
   --once
 ```
 
-如果该 Topic 没有实时数据，**不要发送真实导航目标**。
+> Do NOT send real navigation goals if this topic lacks live streaming data.
 
-## 6.3 双导航接口
-
+## 6.3 Dual‑Navigation Interface Validation
 ```bash
 ros2 topic info /race_task/task1/goal_pose --verbose
 ros2 topic info /race_task/task1/nav_status --verbose
-
 ros2 topic info /race_task/service/goal_pose --verbose
 ros2 topic info /race_task/service/nav_status --verbose
 ```
 
-任务 1 预期：
-
+Expected for Task 1:
 ```text
 /race_task/task1/goal_pose
 Publisher: /coordinator_node
 Subscriber: /task1_pose_nav
 ```
 
-## 6.4 ASR 单实例检查
-
+## 6.4 Single‑ASR‑Instance Check
 ```bash
 pgrep -af \
 'voice_asr_node|voice_asr_raw_internal|voice_asr_raw_external|voice_asr_processed_external'
 ```
 
-比赛时只能有一个实际 ASR 实例。
+Only one active ASR process is permitted during competition runs.
 
-## 6.5 外置麦检查（可选）
-
+## 6.5 External‑Microphone Check (Optional)
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
-
 unset RMW_IMPLEMENTATION
-
 python3 ~/star_agibot/check_external_mic.py
 ```
 
 ---
 
-# 七、完整跑通步骤
+# VII. Full End‑to‑End Startup Sequence
+Start low‑level foundational components first; launch Coordinator last.
 
-下面按“基础能力先启动，Coordinator 最后启动”的顺序执行。
-
-## 7.1 终端 A：夹爪守护
-
+## 7.1 Terminal A: Gripper Watchdog
 ```bash
 deactivate 2>/dev/null || true
-source ~/.venvs/x2-ik-runtime/bin/activate
+source ~/.venvs/x2‑ik‑runtime/bin/activate
 export PYTHONNOUSERSITE=1
-
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
 export PYTHONPATH="$HOME/star_agibot/src/x2_ik_sdk/src:$PYTHONPATH"
-
 ros2 run grasping omnipicker_hand --publish close right
 ```
 
-## 7.2 终端 B：抓取 Executor
-
+## 7.2 Terminal B: Grasp Executor Server
 ```bash
 deactivate 2>/dev/null || true
-source ~/.venvs/x2-ik-runtime/bin/activate
+source ~/.venvs/x2‑ik‑runtime/bin/activate
 export PYTHONNOUSERSITE=1
-
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
 export PYTHONPATH="$HOME/star_agibot/src/x2_ik_sdk/src:$PYTHONPATH"
-
 ros2 run grasping x2_grasp_executor_server
 ```
 
-## 7.3 终端 C：抓取自动触发器
-
+## 7.3 Terminal C: Automatic Grasp Trigger
 ```bash
 deactivate 2>/dev/null || true
-source ~/.venvs/x2-ik-runtime/bin/activate
+source ~/.venvs/x2‑ik‑runtime/bin/activate
 export PYTHONNOUSERSITE=1
-
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
 export PYTHONPATH="$HOME/star_agibot/src/x2_ik_sdk/src:$PYTHONPATH"
-
 ros2 run grasping x2_grasp_auto_trigger
 ```
 
-## 7.4 终端 D：任务 1 导航链
-
+## 7.4 Terminal D: Task 1 Navigation Stack
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 ros2 launch race_task \
   task1_app_ready.launch.py \
   params_file:=$HOME/star_agibot/src/race_task/config/competition_official_voice_nav.yaml
 ```
 
-该 launch 应包含：
-
+This launch file brings up:
 ```text
 tf_pose_bridge
 cmd_vel_bridge
 task1_pose_nav
 ```
 
-`competition_official_voice_nav.yaml` 中最终接口应为：
-
+Effective parameters inside `competition_official_voice_nav.yaml`:
 ```yaml
 goal_pose_topic: "/race_task/task1/goal_pose"
 nav_status_topic: "/race_task/task1/nav_status"
 wait_for_goal_from_rviz: true
 ```
 
-这里 `wait_for_goal_from_rviz: true` 的历史名称实际表示“等待外部 Goal”，正式发布者是 Coordinator。
+> The legacy parameter name `wait_for_goal_from_rviz: true` actually means “await external goal input”, where the goal publisher is Coordinator.
 
-## 7.5 终端 E：服务导航
-
+## 7.5 Terminal E: Service Navigation
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 ros2 run race_task service_pose_nav \
-  --ros-args \
-  --params-file \
+  --ros‑args \
+  --params‑file \
   ~/star_agibot/src/race_task/config/service_official_map_nav.yaml
 ```
 
-参数文件应对应：
-
+Parameter file relevant content:
 ```yaml
 service_pose_nav:
   ros__parameters:
@@ -793,140 +689,118 @@ service_pose_nav:
     wait_for_goal_from_rviz: true
 ```
 
-其余控制频率、速度上限、XY/Yaw 容差以真机最终标定值为准。
+Control frequency, maximum velocity, XY / Yaw tolerances are calibrated for physical hardware.
 
-## 7.6 终端 F：交互意图节点
-
+## 7.6 Terminal F: Intent‑Processing Node
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 ros2 run interaction_agent interaction_node
 ```
 
-比赛起始状态应为：
-
+Initial competition state must be:
 ```text
 TASK1_WAIT_COMMAND
 ```
 
-## 7.7 终端 G：ASR（三选一）
-
-### 推荐候选 1：外置麦 raw
-
+## 7.7 Terminal G: ASR (Choose Exactly One)
+### Recommended Option 1: External Mic Raw Mode
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 unset RMW_IMPLEMENTATION
-
 ros2 run voice_asr \
   voice_asr_raw_external \
-  --ros-args \
-  --params-file \
+  --ros‑args \
+  --params‑file \
   ~/star_agibot/src/voice_asr/config/voice_asr_raw_external.yaml
 ```
 
-### 候选 2：外置麦 processed（真实机器人未测试成功）
-
+### Option 2: External Mic Processed Mode (Unvalidated on Hardware)
 ```bash
 ros2 run voice_asr \
   voice_asr_processed_external \
-  --ros-args \
-  --params-file \
+  --ros‑args \
+  --params‑file \
   ~/star_agibot/src/voice_asr/config/voice_asr_processed_external.yaml
 ```
 
-### 备用：内置麦
-
+### Fallback: Internal Microphone
 ```bash
 ros2 run voice_asr \
   voice_asr_raw_internal \
-  --ros-args \
-  --params-file \
+  --ros‑args \
+  --params‑file \
   ~/star_agibot/src/voice_asr/config/voice_asr_raw_internal.yaml
 ```
 
-**三者只能启动一个。**
+> Launch only one of the three options.
 
-## 7.8 终端 H：执行层 Voice
-
+## 7.8 Terminal H: Voice Execution Node
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 ros2 run x2_execution_pkg voice_node
 ```
 
-## 7.9 终端 I：执行层 Vision
-
+## 7.9 Terminal I: Vision Execution Node
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 ros2 run x2_execution_pkg vision_node \
-  --ros-args \
-  --params-file \
+  --ros‑args \
+  --params‑file \
   ~/star_agibot/src/x2_execution_pkg/config/vision_config.yaml
 ```
 
-## 7.10 终端 J：Coordinator（最后启动）
-
+## 7.10 Terminal J: Coordinator (Start Last)
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 ros2 run x2_execution_pkg coordinator_node \
-  --ros-args \
-  --params-file \
+  --ros‑args \
+  --params‑file \
   ~/star_agibot/src/x2_execution_pkg/config/coordinator_nav.yaml
 ```
 
-Coordinator 启动后，再次确认：
-
+After Coordinator startup, verify nodes:
 ```bash
 ros2 node info /coordinator_node
 ros2 node info /task1_pose_nav
 ros2 node info /service_pose_nav
 ```
 
-## 7.11 开始第一轮监听
-
-确认所有节点正常、定位正常、机器人周围安全后：
-
+## 7.11 Activate First Listening Cycle
+Confirm all nodes healthy, localization valid, robot workspace clear and safe:
 ```bash
 cd ~/star_agibot
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
-
 python3 ~/star_agibot/send_listen_true.py
 ```
 
-然后说：
-
+Then issue voice command:
 ```text
-请前往交互区一
+Please go to interaction area one
 ```
 
 ---
 
-# 八、比赛主流程
-
-## 8.1 任务 1 → 基础交互
-
+# VIII. Competition Main Workflow
+## 8.1 Task 1 → Basic Interaction
 ```text
-“请前往交互区一”
+"Please go to interaction area one"
         ↓
 voice_asr
         ↓
@@ -939,14 +813,14 @@ task1_go_interaction_area
 /ai_agent/input_json
         ↓
 coordinator_node
-        ├── 关闭麦克风
+        ├── Turn off microphone
         └── /race_task/task1/goal_pose
                     ↓
              task1_pose_nav
                     ↓
                  /cmd_vel
                     ↓
-              机器人移动
+              Robot moves
                     ↓
 /race_task/task1/nav_status = "reached"
                     ↓
@@ -957,21 +831,20 @@ coordinator_node
 interaction_agent:
 TASK1_NAVIGATING → INTERACTION_LISTEN
                     ↓
-基础交互开始
+Basic‑interaction phase begins
 ```
 
-## 8.2 自主服务
-
+## 8.2 Autonomous Service Flow
 ```text
-用户唤醒 / 描述需求
+User wake‑up / requirement utterance
         ↓
 interaction_agent
         ↓
 task4_need_classification
         ↓
 coordinator_node
-        ├── TTS 回复
-        ├── 关闭麦克风
+        ├── TTS reply
+        ├── Deactivate microphone
         └── /race_task/service/goal_pose
                     ↓
              service_pose_nav
@@ -990,65 +863,58 @@ coordinator_node
                     ↓
       x2_grasp_executor_server
                     ↓
-         IK + 机械臂 + 夹爪
+         IK solving + Robotic‑arm motion + Gripper operation
 ```
 
 ---
 
-# 九、ROS 2 接口汇总
-
-| 方向 | Topic / Service | 类型 | 用途 |
-| --- | --- | --- | --- |
-| ASR → Agent | `/ai_agent/recognized_text` | `std_msgs/msg/String` | 识别文本 |
-| Agent → Coordinator | `/ai_agent/input_json` | `std_msgs/msg/String` | 标准意图 JSON |
-| Coordinator → ASR/Agent | `/ai_agent/listen_control` | `std_msgs/msg/Bool` | 开关麦与状态同步 |
-| Coordinator → Voice | `/system/voice_cmd` | `std_msgs/msg/String` | 播报命令 JSON |
-| Coordinator → Vision | `/system/vision_cmd` | `std_msgs/msg/String` | 视觉任务 JSON |
-| Vision → Coordinator | `/system/vision_result` | `std_msgs/msg/String` | 视觉结果 JSON |
-| Coordinator → Task1 Nav | `/race_task/task1/goal_pose` | `geometry_msgs/msg/PoseStamped` | 任务 1 目标 |
-| Task1 Nav → Coordinator | `/race_task/task1/nav_status` | `std_msgs/msg/String` | `"reached"` |
-| Coordinator → Service Nav | `/race_task/service/goal_pose` | `geometry_msgs/msg/PoseStamped` | 服务目标 |
-| Service Nav → Coordinator | `/race_task/service/nav_status` | `std_msgs/msg/String` | `"reached"` |
-| TF Bridge → Nav | `/map_tf_distribution/localization_pose` | `geometry_msgs/msg/PoseStamped` | 实时地图位姿 |
-| Nav → Speed Bridge | `/cmd_vel` | `geometry_msgs/msg/Twist` | 导航速度 |
-| Speed Bridge → AimDK | `/aima/mc/locomotion/velocity` | AimDK 消息 | 真机底盘速度 |
-| Vision → Grasp | `/competition/grasp_target` | `std_msgs/msg/String` | 3D 抓取目标 |
-| Vision input | `/aima/hal/sensor/rgbd_head_front/rgb_image` | `sensor_msgs/msg/Image` | RGB |
-| Vision input | `/aima/hal/sensor/rgbd_head_front/depth_image` | `sensor_msgs/msg/Image` | Depth |
-| Vision input | `/aima/hal/sensor/rgbd_head_front/camera_info` | `sensor_msgs/msg/CameraInfo` | 相机内参 |
-| Voice → Audio | `/aima/hal/audio/playback` | `aimdk_msgs/msg/AudioPlayback` | 音频播放 |
-| Coordinator → Face | `PlayEmoji` 相关 AimDK Service | AimDK Service | 表情 |
-| Coordinator → Motion | `SetMcPresetMotion` 相关 AimDK Service | AimDK Service | 预设动作 |
+# IX. ROS 2 Interface Summary
+| Direction | Topic / Service | Type | Purpose |
+|---|---|---|---|
+| ASR → Agent | `/ai_agent/recognized_text` | `std_msgs/msg/String` | Recognized speech text |
+| Agent → Coordinator | `/ai_agent/input_json` | `std_msgs/msg/String` | Standard intent JSON payload |
+| Coordinator → ASR/Agent | `/ai_agent/listen_control` | `std_msgs/msg/Bool` | Microphone toggle and state synchronization |
+| Coordinator → Voice | `/system/voice_cmd` | `std_msgs/msg/String` | Audio‑playback command JSON |
+| Coordinator → Vision | `/system/vision_cmd` | `std_msgs/msg/String` | Vision‑task command JSON |
+| Vision → Coordinator | `/system/vision_result` | `std_msgs/msg/String` | Vision‑detection result JSON |
+| Coordinator → Task1 Nav | `/race_task/task1/goal_pose` | `geometry_msgs/msg/PoseStamped` | Task 1 navigation target pose |
+| Task1 Nav → Coordinator | `/race_task/task1/nav_status` | `std_msgs/msg/String` | Navigation state, `"reached"` on arrival |
+| Coordinator → Service Nav | `/race_task/service/goal_pose` | `geometry_msgs/msg/PoseStamped` | Service‑task navigation target pose |
+| Service Nav → Coordinator | `/race_task/service/nav_status` | `std_msgs/msg/String` | Navigation state, `"reached"` on arrival |
+| TF Bridge → Nav | `/map_tf_distribution/localization_pose` | `geometry_msgs/msg/PoseStamped` | Real‑time robot pose in map frame |
+| Nav → Speed Bridge | `/cmd_vel` | `geometry_msgs/msg/Twist` | Navigation output velocity commands |
+| Speed Bridge → AimDK | `/aima/mc/locomotion/velocity` | AimDK custom message | Low‑level chassis velocity input |
+| Vision → Grasp | `/competition/grasp_target` | `std_msgs/msg/String` | 3‑D target for grasping pipeline |
+| Vision Input | `/aima/hal/sensor/rgbd_head_front/rgb_image` | `sensor_msgs/msg/Image` | RGB camera image stream |
+| Vision Input | `/aima/hal/sensor/rgbd_head_front/depth_image` | `sensor_msgs/msg/Image` | Depth camera image stream |
+| Vision Input | `/aima/hal/sensor/rgbd_head_front/camera_info` | `sensor_msgs/msg/CameraInfo` | Camera intrinsic parameters |
+| Voice → Audio | `/aima/hal/audio/playback` | `aimdk_msgs/msg/AudioPlayback` | Audio playback interface |
+| Coordinator → Face | `PlayEmoji`‑related AimDK Service | AimDK Service | Robot facial‑expression control |
+| Coordinator → Motion | `SetMcPresetMotion`‑related AimDK Service | AimDK Service | Preset robot motion execution |
 
 ---
 
-# 十、分模块联调
-
-## 10.1 只测试 Agent，不让机器人运动
-
-只启动 `interaction_agent`，然后：
-
+# X. Module‑by‑Module Integration Testing
+## 10.1 Test Agent Only (No Robot Motion)
+Launch only `interaction_agent` and monitor output:
 ```bash
 ros2 topic echo /ai_agent/input_json
 ```
 
-模拟 ASR：
-
+Simulate ASR input manually:
 ```bash
 ros2 topic pub --once \
   /ai_agent/recognized_text \
   std_msgs/msg/String \
-  "{data: '请前往交互区一'}"
+  "{data: 'Please go to interaction area one'}"
 ```
 
-应看到：
-
+Expected output contains:
 ```text
 task1_go_interaction_area
 ```
 
-## 10.2 模拟任务 1 到达
-
+## 10.2 Simulate Task‑1 Arrival Event
 ```bash
 ros2 topic pub --once \
   /ai_agent/listen_control \
@@ -1056,148 +922,121 @@ ros2 topic pub --once \
   "{data: true}"
 ```
 
-状态应由：
-
+State should transition from:
 ```text
 TASK1_NAVIGATING
 ```
-
-切换至：
-
+to:
 ```text
 INTERACTION_LISTEN
 ```
 
-## 10.3 抓取链连通测试
-
-**确认机械臂周围无人、姿态安全后**：
-
+## 10.3 Grasp‑Chain End‑to‑End Smoke Test
+**Ensure robotic‑arm workspace is clear and no personnel are nearby before running:**
 ```bash
 source /opt/ros/humble/setup.bash
-
 ros2 topic pub --once \
   /competition/grasp_target \
   std_msgs/msg/String \
   "data: '{\"object_name\":\"test_cup\",\"target_point\":[0.38,0.0,0.20]}'"
 ```
 
-## 10.4 机械臂复位
-
+## 10.4 Robotic‑Arm Reset Command
 ```bash
 deactivate 2>/dev/null || true
-source ~/.venvs/x2-ik-runtime/bin/activate
+source ~/.venvs/x2‑ik‑runtime/bin/activate
 export PYTHONNOUSERSITE=1
-
 source /opt/ros/humble/setup.bash
 source ~/aimdk/install/setup.bash
 source ~/star_agibot/install/setup.bash
 export PYTHONPATH="$HOME/star_agibot/src/x2_ik_sdk/src:$PYTHONPATH"
-
 cd ~/star_agibot/src/py_examples
 python3 -m py_examples.set_mc_action SD
 ```
 
 ---
 
-# 十一、安全约定
-
-1. **启动导航节点本身不应让机器人立即运动。** 导航器必须等待外部 Goal。
-2. 下达真实导航目标前必须确认 `/map_tf_distribution/localization_pose` 实时有效。
-3. Task1 和 Service 两个导航器不得同时处于有效控制状态。
-4. 导航结束、异常、超时、节点退出时都应发送零速度。
-5. ASR 同一时间只能运行一个实例，防止重复识别与重复 JSON。
-6. 机器人播报和底盘运动阶段合理关闭麦克风，避免自激和电机噪声误触发。
-7. 机械臂/夹爪测试前清空工作空间，优先使用低速和安全姿态。
-8. 调试 `/competition/grasp_target` 时不要使用未经确认的三维坐标。
-9. 不要将云端模型输出直接映射成任意运动指令；只接受本地白名单意图。
-10. 比赛机更换系统镜像后，先验证 AimDK、RMW、Fast-CDR 与消息 ABI，再启动上层节点。
+# XI. Safety Conventions
+1. **Starting navigation nodes must not trigger immediate robot movement.** Navigators must wait for externally‑supplied goal poses.
+2. Before issuing real navigation goals, verify `/map_tf_distribution/localization_pose` outputs valid live data.
+3. Task‑1 and Service navigators shall never simultaneously stay in active control states.
+4. Upon navigation completion, exceptions, timeouts or node shutdown, publish zero velocity to chassis.
+5. Only one ASR instance may run concurrently to prevent duplicate speech recognition and duplicate intent JSON outputs.
+6. Mute microphones during audio playback and chassis motion to avoid self‑excitation and false triggers from motor noise.
+7. Clear the workspace before robotic‑arm / gripper testing; prefer low‑speed operation and safe home postures.
+8. Do not send unvalidated raw 3‑D coordinates to `/competition/grasp_target` during debugging.
+9. Never forward raw cloud‑model outputs directly as motion commands; execute only locally‑whitelisted intents.
+10. After flashing new system images on competition hardware, validate AimDK, RMW and Fast‑CDR message ABI compatibility before launching upper‑layer application nodes.
 
 ---
 
-# 十二、常见问题
-
-### 12.1 `task1_pose_nav` 收不到目标
-
+# XII. Common Troubleshooting
+### 12.1 `task1_pose_nav` does not receive navigation goals
 ```bash
 ros2 topic info /race_task/task1/goal_pose --verbose
 ```
 
-应同时看到：
-
+Output should show both:
 ```text
 /coordinator_node
 /task1_pose_nav
 ```
 
-检查 YAML 是否仍使用旧的：
-
+Check YAML config files for legacy topic names:
 ```text
 /race_task/nav_goal
 /goal_pose
 ```
 
-最终项目应统一到：
-
+The project uses standardized topic:
 ```text
 /race_task/task1/goal_pose
 ```
 
-### 12.2 定位没有数据
-
+### 12.2 Localization topic has no data
 ```bash
 ros2 run tf2_ros tf2_echo map base_link
 ros2 topic echo /map_tf_distribution/localization_pose --once
 ```
 
-先修复官方 App 重定位 / TF，再测试真机导航。
+Fix official App relocalization and TF tree first; then test physical‑robot navigation.
 
-### 12.3 一句话被处理两次
-
-检查是否启动了多个 ASR：
-
+### 12.3 Single utterance processed multiple times
+Check for multiple ASR instances running:
 ```bash
 pgrep -af \
 'voice_asr_node|voice_asr_raw_internal|voice_asr_raw_external|voice_asr_processed_external'
 ```
 
-只保留一个。
+Keep exactly one ASR process active.
 
-### 12.4 Python/IK 依赖互相污染
-
-抓取终端使用：
-
+### 12.4 Python / IK dependency pollution
+Grasp‑related terminals must use:
 ```bash
-~/.venvs/x2-ik-runtime
+~/.venvs/x2‑ik‑runtime
 ```
 
-普通 ROS 节点不要激活该 venv。
+Do NOT activate this virtual environment for regular ROS nodes.
 
-### 12.5 模型路径找不到
-
-不要在源码里硬编码绝对路径。检查：
-
+### 12.5 Model‑file path not found
+Avoid hard‑coding absolute file paths inside source code. Inspect:
 ```bash
 ~/star_agibot/src/x2_execution_pkg/config/vision_config.yaml
 ```
 
-并将模型实际路径指向本机的 `~/star_agibot/models/` 或项目当前模型目录。
+Point model entries to actual local directories such as `~/star_agibot/models/`.
 
 ---
 
+# XIII. License and Third‑Party Components
+Original source code within this repository is released under the [MIT License](LICENSE).
 
-# 十三、License 与第三方组件
+The following assets originate from third parties and retain their original licenses independent of the repository‑level MIT statement:
+- Agibot AimDK / `aimdk_msgs`;
+- `x2_ik_sdk` and its binary / offline dependencies;
+- `ruckig`;
+- ONNX / PyTorch / Ultralytics / Sherpa‑ONNX;
+- Pre‑trained models, fonts, speech models and datasets;
+- Robot‑vendor‑provided maps, SDK artifacts and resource files.
 
-本仓库的**项目原创代码**采用 [MIT License](LICENSE)。
-
-以下内容来自第三方，**不因项目根目录使用 MIT 而改变其原许可证**：
-
-- Agibot AimDK / `aimdk_msgs`；
-- `x2_ik_sdk` 及其二进制/离线依赖；
-- `ruckig`；
-- ONNX / PyTorch / Ultralytics / Sherpa-ONNX；
-- 预训练模型、字体、语音模型和数据集；
-- 机器人厂商提供的地图、SDK、资源文件。
-
-发布或再分发前请分别检查其上游许可证和比赛方授权要求。
-
----
+Review upstream license terms and competition‑organizer authorization requirements before redistribution or public release.
